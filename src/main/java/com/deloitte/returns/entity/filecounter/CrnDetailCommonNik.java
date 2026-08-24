@@ -25,7 +25,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "crn_detail_common_nik", schema = "document")
+@Table(name = "crn_detail_common", schema = "filecounter")
 public class CrnDetailCommonNik {
 
 	@Id

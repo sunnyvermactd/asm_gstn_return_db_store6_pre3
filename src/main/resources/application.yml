@@ -1,22 +1,43 @@
-
-
 spring:
-  datasource:
-    url: jdbc:postgresql://localhost:5432/TestingReturnPre?useSSL=false
-    driver-class-name: org.postgresql.Driver
-    username: postgres
-    password: postgres
-
+    datasource:
+        url: jdbc:postgresql://10.79.1.151:5432/gst_tax_management?useSSL=false
+        driver-class-name: org.postgresql.Driver
+        username: postgres
+        password: postgres@123
     hikari:
-      maximum-pool-size: 30
+        maximum-pool-size: 50 # Max simultaneous connections
+        minimum-idle: 10 # Minimum idle connections
+        connection-timeout: 60000 # Wait 60 sec for a connection
+        idle-timeout: 300000 # 5 min idle timeout
+        max-lifetime: 1800000 # 30 min max lifetime
 
-  jpa:
-    hibernate:
-      ddl-auto: update
+    jpa:
+        hibernate:
+            ddl-auto: none
+            show-sql: false
+        properties:
+            hibernate:
+                format_sql: true
+                default_schema: public
+        defer-datasource-initialization: true
 
-    show-sql: false
-
-    properties:
-      hibernate:
-        format_sql: true
-        default_schema: public
+#spring:
+#  datasource:
+#    url: jdbc:postgresql://localhost:5432/TestingReturnPre?useSSL=false
+#    driver-class-name: org.postgresql.Driver
+#    username: postgres
+#    password: postgres
+#
+#    hikari:
+#      maximum-pool-size: 30
+#
+#  jpa:
+#    hibernate:
+#      ddl-auto: update
+#
+#    show-sql: false
+#
+#    properties:
+#      hibernate:
+#        format_sql: true
+#        default_schema: public

@@ -9,12 +9,11 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class LastUpdateDTO {
+public class LastUpdateChangeNameDTO {
 
 	private String ty;
 
 	private String type;
-
 	private LocalDate maxDate;
 
 }

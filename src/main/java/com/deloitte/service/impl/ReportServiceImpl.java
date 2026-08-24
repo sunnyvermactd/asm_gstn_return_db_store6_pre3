@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
+import com.deloitte.common.bean.LastUpdateChangeNameDTO;
 import com.deloitte.common.bean.LastUpdateDTO;
 import com.deloitte.common.bean.ReportRequestDTO;
 import com.deloitte.common.bean.ReportResponseDTO;
@@ -21,11 +22,11 @@ public class ReportServiceImpl {
 
 	public List<ReportResponseDTO> generateReport(ReportRequestDTO request) {
 
-		if ("PARTA".equalsIgnoreCase(request.getTy()) ) {
+		if ("PARTA".equalsIgnoreCase(request.getTy())) {
 
 			return generateEwbReport(request);
 		}
-		
+
 		if ("PARTB".equalsIgnoreCase(request.getTy())) {
 
 			return generateEwbReportPartB(request);
@@ -513,25 +514,22 @@ public class ReportServiceImpl {
 	public List<LastUpdateDTO> getLastUpdateReport() {
 
 		String sql = """
-				select
+				SELECT
 				    ty,
-				    max(dt) as max_dt
-				from filecounter."ReturnFileCount"
-				group by ty
-				order by ty
+				    MAX(dt) AS max_dt
+				FROM filecounter."ReturnFileCount"
+				GROUP BY ty
+				ORDER BY ty
 				""";
 
-		return jdbcTemplate.query(sql,
+		return jdbcTemplate.query(sql, (rs, rowNum) -> {
 
-				(rs, rowNum) -> new LastUpdateDTO(
+			String ty = rs.getString("ty");
 
-						rs.getString("ty"),
-
-						rs.getDate("max_dt").toLocalDate()
-
-				));
+			return new LastUpdateDTO(ty, getReportType(ty), rs.getDate("max_dt").toLocalDate());
+		});
 	}
-	
+
 	public List<LastUpdateDTO> getLastUpdateCrnReport() {
 
 	    String sql = """
@@ -542,13 +540,21 @@ public class ReportServiceImpl {
 	            WHERE issuccess = 'true'
 	            """;
 
-	    return jdbcTemplate.query(sql,
-	            (rs, rowNum) -> new LastUpdateDTO(
-	                    rs.getString("ty"),
-	                    rs.getDate("lastupdated_dt").toLocalDate()
-	            ));
+	    return jdbcTemplate.query(
+	            sql,
+	            (rs, rowNum) -> {
+
+	                String ty = rs.getString("ty");
+
+	                return new LastUpdateDTO(
+	                        ty,
+	                        getReportType(ty),
+	                        rs.getDate("lastupdated_dt").toLocalDate()
+	                );
+	            }
+	    );
 	}
-	
+
 	public List<LastUpdateDTO> getLastUpdateRegistrationReport() {
 
 	    String sql = """
@@ -559,32 +565,72 @@ public class ReportServiceImpl {
 	            WHERE issuccess = 'true'
 	            """;
 
-	    return jdbcTemplate.query(sql,
-	            (rs, rowNum) -> new LastUpdateDTO(
-	                    rs.getString("ty"),
-	                    rs.getDate("lastupdated_dt").toLocalDate()
-	            ));
+	    return jdbcTemplate.query(
+	            sql,
+	            (rs, rowNum) -> {
+
+	                String ty = rs.getString("ty");
+
+	                return new LastUpdateDTO(
+	                        ty,
+	                        getReportType(ty),
+	                        rs.getDate("lastupdated_dt").toLocalDate()
+	                );
+	            }
+	    );
 	}
-	
+
 	public List<LastUpdateDTO> getLastUpdateEwayBillReport() {
 
 	    String sql = """
 	            SELECT
 	                ty,
-	                MAX(TO_DATE(dt,'DD-MM-YYYY')) AS lastupdated_dt
+	                MAX(TO_DATE(dt, 'DD-MM-YYYY')) AS lastupdated_dt
 	            FROM filecounter.ewb_count_data
 	            WHERE is_success = 'True'
 	            GROUP BY ty
 	            ORDER BY ty
 	            """;
 
-	    return jdbcTemplate.query(sql,
-	            (rs, rowNum) -> new LastUpdateDTO(
-	                    rs.getString("ty"),
-	                    rs.getDate("lastupdated_dt").toLocalDate()
-	            ));
+	    return jdbcTemplate.query(
+	            sql,
+	            (rs, rowNum) -> {
+
+	                String ty = rs.getString("ty");
+
+	                return new LastUpdateDTO(
+	                        ty,
+	                        getReportType(ty),
+	                        rs.getDate("lastupdated_dt").toLocalDate()
+	                );
+	            }
+	    );
 	}
-	
-	
-	
+
+	private String getReportType(String ty) {
+
+		return switch (ty) {
+		case "CM8" -> "Composition Form 08";
+		case "payment" -> "Payment";
+		case "R1" -> "GSTR1";
+		case "R10" -> "GSTR10";
+		case "R11" -> "GSTR11";
+		case "R1A" -> "GSTR1A";
+		case "R2B" -> "GSTR2B";
+		case "R3B" -> "GSTR3B";
+		case "R4" -> "GSTR4";
+		case "R6" -> "GSTR6";
+		case "R7" -> "GSTR7";
+		case "R8" -> "GSTR8";
+		case "R9" -> "GSTR9";
+		case "R9A" -> "GSTR9A";
+		case "R9C" -> "GSTR9C";
+		case "CRN" -> "CRN";
+		case "REGISTRATION" -> "Registration";
+		case "PARTA" -> "E-Way Bill (Part A)";
+		case "PARTB" -> "E-Way Bill (Part B)";
+		default -> ty;
+		};
+	}
+
 }

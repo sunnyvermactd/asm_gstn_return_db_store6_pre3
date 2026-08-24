@@ -1877,6 +1877,9 @@ public class RegistrationServiceImpl {
 
 		try {
 
+			// Set insert/update timestamp
+	        doc.setInsertTm(LocalDateTime.now());
+	        
 			APIDetails apiDetails = apiDetailsImpl.findByName(Constants.GET_REGISTRATION_NORMAL_TAX_PAYER);
 
 			HttpHeaders headers = authenticationHelper.getDefaultHeaders(masterData, session.getAuthToken(),
@@ -1893,7 +1896,7 @@ public class RegistrationServiceImpl {
 			log.info("Calling API GSTIN={} Type={}", doc.getGstin(), idty);
 
 			GSTCommonResponseBean response = restClient.get(apiPath, GSTCommonResponseBean.class, headers);
-
+			
 			if (response == null || response.getData() == null || response.getData().isBlank()) {
 
 				doc.setIsMissing(true);

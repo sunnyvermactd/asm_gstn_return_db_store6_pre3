@@ -1,5 +1,7 @@
 package com.deloitte.returns.entity.log;
 
+import java.time.LocalDateTime;
+
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -21,8 +23,7 @@ public class TdsTcsList {
 
 	@Column(name = "ty")
 	private String ty;
-	
-	
+
 	@JdbcTypeCode(SqlTypes.JSON)
 	@Column(name = "jsondata")
 	private JsonNode jsondata;
@@ -42,7 +43,10 @@ public class TdsTcsList {
 
 	@Column(name = "is_missing")
 	private Boolean isMissing;
-	
+
 	@Column(name = "counter_attempt") //
 	private int counterAttempt;
+
+	@Column(name = "insert_tm")
+	private LocalDateTime insertTm;
 }

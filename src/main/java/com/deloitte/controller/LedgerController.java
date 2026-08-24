@@ -2,7 +2,6 @@ package com.deloitte.controller;
 
 import java.util.function.Supplier;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,8 +17,11 @@ import lombok.extern.log4j.Log4j2;
 @Log4j2
 public class LedgerController {
 
-	@Autowired
-	CommonControllerGstrUtilityImpl commonControllerGstrUtilityImpl;
+	final CommonControllerGstrUtilityImpl commonControllerGstrUtilityImpl;
+
+	LedgerController(CommonControllerGstrUtilityImpl commonControllerGstrUtilityImpl) {
+		this.commonControllerGstrUtilityImpl = commonControllerGstrUtilityImpl;
+	}
 
 	@GetMapping("/schedule-ledger-on-automatic")
 	public ResponseEntity<String> scheduleLedgerOnAutomatic(@RequestParam String action, @RequestParam String fr_dt,

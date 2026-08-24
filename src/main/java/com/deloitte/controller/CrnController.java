@@ -4,7 +4,6 @@ import java.io.UnsupportedEncodingException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -12,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.deloitte.returns.service.GstUserSessionServices;
 import com.deloitte.service.impl.CommonCrnServiceImpl;
+import com.deloitte.service.impl.CrnDetailMigrationService;
 import com.deloitte.service.support.crn.CommonCrnServicePreImpl;
 import com.deloitte.service.utility.procedure.CrnProcedureService;
 
@@ -34,13 +34,17 @@ public class CrnController {
 	@Autowired
 	protected GstUserSessionServices gstUserSessionServices;
 
+	@Autowired
+	private CrnDetailMigrationService crnDetailMigrationService;
+	
+	@GetMapping("/process-crn-detail-migration")
+	public void processCrnDetailMigrationService() {
+		crnDetailMigrationService.migrateFyData();
+	}
+	
+	
 	private static final String USERNAME = "GSTG2G18";
-	
-	
-	/**
-	 * FINAL VERDICT
-	 */
-	@Scheduled(cron = "0 10 8 * * *")
+
 	@GetMapping("/process-crn-scheduler")
 	public void processCrnScheduler() {
 
@@ -70,11 +74,7 @@ public class CrnController {
 
 		log.info("========== CRN Scheduler Finished ==========");
 	}
-	
-	
 
-	// ===========Download CRN data based on user name and time range====//
-	// @Scheduled(cron = "0 10 3 * * *")
 	@GetMapping("/process-crn-automatically")
 	public String processCrnAutomatically() throws UnsupportedEncodingException {
 
@@ -95,7 +95,6 @@ public class CrnController {
 		return response;
 	}
 
-	// @Scheduled(cron = "0 40 3 * * *")
 	@GetMapping("/process-pending")
 	public ResponseEntity<String> processPendingCrn() {
 
@@ -127,8 +126,6 @@ public class CrnController {
 			return ResponseEntity.internalServerError().body("CRN processing failed: " + e.getMessage());
 		}
 	}
-
-	
 
 	/**
 	 * SINGLE CLICK COMPLETE FLOW

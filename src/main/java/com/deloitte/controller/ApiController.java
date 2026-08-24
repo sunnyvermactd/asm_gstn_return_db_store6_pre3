@@ -44,27 +44,34 @@ public class ApiController {
 		return response;
 	}
 
+//	@GetMapping("/last-update")
+//	public List<LastUpdateDTO> getLastUpdateReport() {
+//
+//		return reportServiceImpl.getLastUpdateReport();
+//
+//	}
+
 	@GetMapping("/last-update")
 	public List<LastUpdateDTO> getLastUpdateReport() {
 
 		return reportServiceImpl.getLastUpdateReport();
 
 	}
-	
+
 	@GetMapping("/last-update-crn")
 	public List<LastUpdateDTO> getLastUpdateCrnReport() {
 
 		return reportServiceImpl.getLastUpdateCrnReport();
 
 	}
-	
+
 	@GetMapping("/last-update-registration")
 	public List<LastUpdateDTO> getLastUpdateRegistrationReport() {
 
 		return reportServiceImpl.getLastUpdateRegistrationReport();
 
 	}
-	
+
 	@GetMapping("/last-update-eway-bill")
 	public List<LastUpdateDTO> getLastUpdateEwayBillReport() {
 

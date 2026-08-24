@@ -35,7 +35,7 @@ public class EwayBillController {
 
 	}
 
-	//@Scheduled(cron = "0 10 4 * * *")
+	
 	@GetMapping("/schedule-PARTA")
 	public String schedulePartADownload() {
 		String category = "PARTA";
@@ -43,7 +43,7 @@ public class EwayBillController {
 
 	}
 	
-	//@Scheduled(cron = "0 10 4 * * *")
+
 	@GetMapping("/schedule-PARTB")
 	public String schedulePartBDownload() {
 		String category = "PARTB";

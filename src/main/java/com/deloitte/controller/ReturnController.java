@@ -9,9 +9,9 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -86,18 +86,15 @@ public class ReturnController {
 
 	// ========================== 1️⃣ DOWNLOAD APIs ==========================
 
-	@Scheduled(cron = "0 10 9 * * *")
 	@GetMapping("/CM8") // ready
 	public ResponseEntity<String> scheduleCmp08Download() {
 		return scheduleWithLogging("CM8", "scheduleCmp08Download");
 	}
 
-	@GetMapping("/ITC02") // no need
 	public ResponseEntity<String> scheduleItc02Download() {
 		return scheduleWithLogging("ITC02", "scheduleItc02Download");
 	}
 
-	@Scheduled(cron = "0 20 9 * * *")
 	@GetMapping("/payment") // ready
 	public ResponseEntity<String> schedulePaymentDownload() {
 		return scheduleWithLogging("payment", "schedulePaymentDownload");
@@ -108,31 +105,26 @@ public class ReturnController {
 		return scheduleWithLogging("recon", "scheduleReconDataDownload");
 	}
 
-	@Scheduled(cron = "0 35 9 * * *")
 	@GetMapping("/R1") // ready
 	public ResponseEntity<String> scheduleGstr1Download() {
 		return scheduleWithLogging("R1", "scheduleGstr1Download");
 	}
 
-	@Scheduled(cron = "0 50 6 * * *")
 	@GetMapping("/R1A") // no need
 	public ResponseEntity<String> scheduleGstr1aDownload() {
 		return scheduleWithLogging("R1A", "scheduleGstr1aDownload");
 	}
 
-	@Scheduled(cron = "0 10 7 * * *")
 	@GetMapping("/R2B") // ready
 	public ResponseEntity<String> scheduleGstr2bDownload() {
 		return scheduleWithLogging("R2B", "scheduleGstr2bDownload");
 	}
 
-	@Scheduled(cron = "0 25 7 * * *")
 	@GetMapping("/R3B") // ready
 	public ResponseEntity<String> scheduleGstr3bDownload() {
 		return scheduleWithLogging("R3B", "scheduleGstr3bDownload");
 	}
 
-	@Scheduled(cron = "0 45 7 * * *")
 	@GetMapping("/R4") // ready
 	public ResponseEntity<String> scheduleGstr4Download() {
 		return scheduleWithLogging("R4", "scheduleGstr4Download");
@@ -143,31 +135,26 @@ public class ReturnController {
 		return scheduleWithLogging("R5", "scheduleGstr5Download");
 	}
 
-	@Scheduled(cron = "0 55 7 * * *")
 	@GetMapping("/R6") // ready
 	public ResponseEntity<String> scheduleGstr6Download() {
 		return scheduleWithLogging("R6", "scheduleGstr6Download"); // Completed
 	}
 
-	@Scheduled(cron = "0 10 8 * * *")
 	@GetMapping("/R7") // ready--
 	public ResponseEntity<String> scheduleGstr7Download() {
 		return scheduleWithLogging("R7", "scheduleGstr7Download");
 	}
 
-	@Scheduled(cron = "0 20 8 * * *")
 	@GetMapping("/R8") // ready
 	public ResponseEntity<String> scheduleGstr8Download() {
 		return scheduleWithLogging("R8", "scheduleGstr8Download");// Completed
 	}
 
-	@Scheduled(cron = "0 30 8 * * *")
 	@GetMapping("/R9") // ready--
 	public ResponseEntity<String> scheduleGstr9Download() {
 		return scheduleWithLogging("R9", "scheduleGstr9Download");
 	}
 
-	@Scheduled(cron = "0 40 8 * * *")
 	@GetMapping("/R9A") // ready
 	public ResponseEntity<String> scheduleGstr9aDownload() {
 		return scheduleWithLogging("R9A", "scheduleGstr9aDownload");
@@ -178,19 +165,16 @@ public class ReturnController {
 		return scheduleWithLogging("R98A", "scheduleGstr98aDownload");
 	}
 
-	@Scheduled(cron = "0 50 9 * * *")
 	@GetMapping("/R9C") // ready---
 	public ResponseEntity<String> scheduleGstr9cDownload() {
 		return scheduleWithLogging("R9C", "scheduleGstr9cDownload");
 	}
 
-	@Scheduled(cron = "0 55 8 * * *")
 	@GetMapping("/R10") // ready---
 	public ResponseEntity<String> scheduleGstr10Download() {
 		return scheduleWithLogging("R10", "scheduleGstr10Download");
 	}
 
-	@Scheduled(cron = "0 58 8 * * *")
 	@GetMapping("/R11") // ready---
 	public ResponseEntity<String> scheduleGstr11Download() {
 		return scheduleWithLogging("R11", "scheduleGstr11Download");
@@ -288,7 +272,6 @@ public class ReturnController {
 		return ResponseEntity.ok(response);
 	}
 
-//	//@Scheduled(cron = "0 20 16 * * *")
 	@GetMapping("/process-documents-dh") // need to change the table--
 	public ResponseEntity<String> processDocumentsDh() {
 
@@ -394,6 +377,14 @@ public class ReturnController {
 
 		}
 
+	}
+
+	@PostMapping("/read")
+	public String readPdf() throws Exception {
+
+		ewayBillReportServiceImpl.readAndSave("D:/PDF/881720801117_EWB.pdf");
+
+		return "PDF Read Successfully";
 	}
 
 }
