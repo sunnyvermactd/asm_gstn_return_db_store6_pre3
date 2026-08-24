@@ -884,7 +884,7 @@ function triggerDownload(ty) {
         "CRN": "/api/crn/process-crn-scheduler",
 
         // Registration
-        "REGISTRATION": "/api/registration/complete-registration-automation-final-verdict",
+        "REGISTRATION": "/common/registration/complete-registration-automation-final-verdict",
 
         // E-Way Bill
         "PARTA": "http://10.79.1.225:8063/EwayBill/schedule-PARTA",

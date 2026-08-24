@@ -48,7 +48,7 @@ public class CrnDetailMigrationService {
 			}
 
 			for (CrnDetailCommonNik entity : page.getContent()) {
-
+				entity.setCounterAttempt(entity.getCounterAttempt() + 1);
 				try {
 
 					JsonNode root = entity.getJsonData();
