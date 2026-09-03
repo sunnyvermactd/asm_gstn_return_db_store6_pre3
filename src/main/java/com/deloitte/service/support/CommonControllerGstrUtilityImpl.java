@@ -10,7 +10,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 
@@ -38,53 +37,29 @@ import com.deloitte.service.utility.procedure.LedgerGstinProjection;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
 @Service
 @Log4j2
+@RequiredArgsConstructor
 public class CommonControllerGstrUtilityImpl {
 
-	@Autowired
-	private GstinRepository gstinRepository;
+	private final GstinRepository gstinRepository;
+	private final Gstr2aServiceImpl gstr2aServiceImpl;
+	private final CommonServiceGstrLedgerImpl commonServiceGstrLedgerImpl;
+	private final RegularTaxpayerRepository regularTaxpayerRepository;
+	private final MasterDataService masterDataService;
+	private final GstUserSessionServices gstUserSessionServices;
 
-	@Autowired
-	private Gstr2aServiceImpl gstr2aServiceImpl;
+	private final RestClientHelper restClient;
 
-	@Autowired
-	protected CommonServiceGstrLedgerImpl commonServiceGstrLedgerImpl;
-
-	@Autowired
-	protected RegularTaxpayerRepository regularTaxpayerRepository;
-
-	@Autowired
-	protected MasterDataService masterDataService;
-
-	@Autowired
-	protected GstUserSessionServices gstUserSessionServices;
-
-	@Autowired
-	protected FileDownloadHelperCommon fileDownloadHelperCommon;
-
-	@Autowired
-	protected RestClientHelper restClient;
-
-	@Autowired
-	protected CommonServiceGstrImplSupport commonServiceGstrImplSupport;
-
-	@Autowired
-	protected AuthenticationHelper authenticationHelper;
-
-	@Autowired
-	protected APIDetailsImpl apiDetailsImpl;
-
-	@Autowired
-	protected ObjectMapper objectMapper;
-
-	@Autowired
-	protected LedgerCommonDetailsRepository ledgerCommonDetailsRepository;
-
-	@Autowired
-	protected LedgerInitialJsonRepository ledgerInitialJsonRepository;
+	private final AuthenticationHelper authenticationHelper;
+	private final APIDetailsImpl apiDetailsImpl;
+	private final ObjectMapper objectMapper;
+	private final LedgerCommonDetailsRepository ledgerCommonDetailsRepository;
+	private final LedgerInitialJsonRepository ledgerInitialJsonRepository;
+	
 
 	protected static String USERNAME = "GSTG2G18";
 
@@ -472,7 +447,8 @@ public class CommonControllerGstrUtilityImpl {
 
 					log.warn("⏭ Skipping GSTIN={} because apprvdt > toDate", gstin);
 
-					saveSkippedRecord(gstin, action, fromDate, toDate, apprvDate, "APPROVAL_DATE_AFTER_TO_DATE",taxpayer.getId());
+					saveSkippedRecord(gstin, action, fromDate, toDate, apprvDate, "APPROVAL_DATE_AFTER_TO_DATE",
+							taxpayer.getId());
 
 					skippedCount++;
 
@@ -600,7 +576,7 @@ public class CommonControllerGstrUtilityImpl {
 			ledgerInitialJson.setMsg("ALREADY EXISTS : " + fromDate + " TO " + toDate);
 			ledgerInitialJson.setRegularTaxpayerId(null);
 			ledgerCommonDetailsRepository.save(entry);
-			//ledgerInitialJsonRepository.save(ledgerInitialJson);
+			// ledgerInitialJsonRepository.save(ledgerInitialJson);
 
 			log.info("💾 Duplicate Entry Saved GSTIN={}", gstin);
 
@@ -747,7 +723,7 @@ public class CommonControllerGstrUtilityImpl {
 			ledgerInitialJson.setRegularTaxpayerId(regulartaxpayerid);
 			ledgerInitialJson.setMsg("ALREADY EXISTS : " + fromDate + " TO " + toDate);
 			ledgerCommonDetailsRepository.save(entry);
-			//ledgerInitialJsonRepository.save(ledgerInitialJson);
+			// ledgerInitialJsonRepository.save(ledgerInitialJson);
 
 			log.info("💾 Duplicate Entry Saved GSTIN={}", gstin);
 
@@ -812,7 +788,7 @@ public class CommonControllerGstrUtilityImpl {
 			entity.setStatus("NOT_FOUND");
 			entity.setEntityJson(objectMapper.writeValueAsString(response));
 
-		    ledgerInitialJson.setJsondata( objectMapper.valueToTree(response));
+			ledgerInitialJson.setJsondata(objectMapper.valueToTree(response));
 			ledgerInitialJson.setIsSuccess(false);
 
 			String errorMsg = "GST_SERVER_ERROR";
@@ -1000,11 +976,12 @@ public class CommonControllerGstrUtilityImpl {
 				// APPROVAL DATE AFTER TO DATE
 				// ====================================================
 
-				if (apprvDate.isAfter(toDate) ) {
+				if (apprvDate.isAfter(toDate)) {
 
 					log.warn("⏭ Skipping GSTIN={} because apprvdt > toDate", gstin);
 
-					saveSkippedRecord(gstin, action, fromDate, toDate, apprvDate, "APPROVAL_DATE_AFTER_TO_DATE", taxpayer.getRegulartaxpayerid());
+					saveSkippedRecord(gstin, action, fromDate, toDate, apprvDate, "APPROVAL_DATE_AFTER_TO_DATE",
+							taxpayer.getRegulartaxpayerid());
 
 					skippedCount++;
 
@@ -1025,11 +1002,11 @@ public class CommonControllerGstrUtilityImpl {
 //					log.info("📌 Adjusted FromDate={} for GSTIN={}", finalFromDate, gstin);
 //				}
 				if ((apprvDate.isEqual(fromDate) || apprvDate.isAfter(fromDate))
-				        && (apprvDate.isEqual(toDate) || apprvDate.isBefore(toDate))) {
+						&& (apprvDate.isEqual(toDate) || apprvDate.isBefore(toDate))) {
 
-				    finalFromDate = apprvDate;
+					finalFromDate = apprvDate;
 
-				    log.info("📌 Adjusted FromDate={} for GSTIN={}", finalFromDate, gstin);
+					log.info("📌 Adjusted FromDate={} for GSTIN={}", finalFromDate, gstin);
 				}
 
 				// ====================================================

@@ -39,7 +39,7 @@ public class ForestApiService {
 
 		//LocalDate start = LocalDate.of(2020, 4, 1);
 		LocalDate start = LocalDate.of(2024, 10, 18);
-		LocalDate end = LocalDate.of(2026, 3, 31);
+		LocalDate end = LocalDate.of(2026, 8, 23);
 
 		while (!start.isAfter(end)) {
 

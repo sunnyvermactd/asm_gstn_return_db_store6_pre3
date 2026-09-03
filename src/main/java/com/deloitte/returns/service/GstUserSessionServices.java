@@ -106,25 +106,22 @@ public class GstUserSessionServices {
 		gstAuthenticationInputBean.setPassword(encryptedPassword);
 		gstAuthenticationInputBean.setAppKey(appKey);
 
-		// System.out.println((gstAuthenticationInputBean.toString()));
 		GSTAuthenticationResponseBean gstAuthenticationResponseBean = gstUserSessionServicesSupport.doAuth(apiDetails,
 				gstAuthenticationInputBean, masterData);
 
 		if (null != gstAuthenticationResponseBean && gstAuthenticationResponseBean.getStatus_cd().equals("0")) {
-			// throw new
-			// ApplicationException(gstAuthenticationResponseBean.getError().get("message"));
+			
 			log.error("Exception thrown from GSTN server while authenticating user session "
 					+ gstAuthenticationResponseBean.getError().get("message"));
 		} else {
 			assert gstAuthenticationResponseBean != null;
 			gSTUserSession.setSek(gstAuthenticationResponseBean.getSek());
 			gSTUserSession.setAuthToken(gstAuthenticationResponseBean.getAuth_token());
-			// ask to Ram
+		
 			gSTUserSessionRepository.save(gSTUserSession);
 		}
 
-		// System.out.println("gstAuthenticationResponseBean " +
-		// gstAuthenticationResponseBean.toString());
+
 
 	}
 

@@ -9,19 +9,20 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.deloitte.service.support.CommonControllerGstrUtilityImpl;
+import com.deloitte.service.support.CommonControllerGstrUtilityImplOptimized;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
 @RestController
 @RequestMapping("/common/ledger")
 @Log4j2
+@RequiredArgsConstructor
 public class LedgerController {
 
 	final CommonControllerGstrUtilityImpl commonControllerGstrUtilityImpl;
 
-	LedgerController(CommonControllerGstrUtilityImpl commonControllerGstrUtilityImpl) {
-		this.commonControllerGstrUtilityImpl = commonControllerGstrUtilityImpl;
-	}
+	final CommonControllerGstrUtilityImplOptimized commonControllerGstrUtilityImplOptimized;
 
 	@GetMapping("/schedule-ledger-on-automatic")
 	public ResponseEntity<String> scheduleLedgerOnAutomatic(@RequestParam String action, @RequestParam String fr_dt,
@@ -69,7 +70,7 @@ public class LedgerController {
 
 		try {
 
-			String response = commonControllerGstrUtilityImpl.getLedgerForMultipleGSTNFunctionDependent(action, fr_dt,
+			String response = commonControllerGstrUtilityImplOptimized.getLedgerForMultipleGSTN(action, fr_dt,
 					to_dt);
 
 			long end = System.currentTimeMillis();

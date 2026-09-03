@@ -75,10 +75,12 @@ public class CommonServiceGstrUtilityImpl {
 			if (logData != null) {
 				startDate = logData.getStartDate();
 			} else {
-				startDate = "12-05-2026";
+				startDate = "07-08-2026";
 			}
 
 			String endDate = LocalDate.now().minusDays(1).format(formatter);
+			startDate = "18-08-2026";
+			//endDate = "30-08-2026";
 
 			log.info("NORMAL PROCESS STARTED | APP={} | START_DATE={} | END_DATE={}", application, startDate, endDate);
 
