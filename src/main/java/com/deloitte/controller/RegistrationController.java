@@ -4,7 +4,6 @@ import java.io.UnsupportedEncodingException;
 import java.time.LocalDateTime;
 import java.util.function.Supplier;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,24 +19,22 @@ import com.deloitte.service.impl.ArnHandlerForRegistration;
 import com.deloitte.service.impl.GstinExcelService;
 import com.deloitte.service.support.GstinServiceRegistration;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
 @RestController
 @RequestMapping("/common/registration")
 @Log4j2
+@RequiredArgsConstructor
 public class RegistrationController {
 
-	@Autowired
-	private GstinServiceRegistration gstinService;
+	private final GstinServiceRegistration gstinService;
 
-	@Autowired
-	private GstinExcelService gstinExcelService;
+	private final GstinExcelService gstinExcelService;
 
-	@Autowired
-	private ArnHandlerForRegistration arnHandlerForRegistration;
+	private final ArnHandlerForRegistration arnHandlerForRegistration;
 
-	@Autowired
-	protected GstUserSessionServices gstUserSessionServices;
+	private final GstUserSessionServices gstUserSessionServices;
 
 	private static final String USERNAME = "GSTG2G18";
 

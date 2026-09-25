@@ -29,6 +29,12 @@ SIDEBAR NAVIGATION
 ==================================================
 */
 function showSection(section) {
+    // Always reset GSTIN-dependent UI when changing application sections.
+    resetGstinDependentSection();
+
+    $(".sidebar a[data-section]").removeClass("active");
+    $(".sidebar a[data-section=\"" + section + "\"]").addClass("active");
+
     $("#dashboardSection").hide();
     $("#reportSection").hide();
     $("#lastUpdateSection").hide();
@@ -761,95 +767,1216 @@ function triggerDownload(ty) {
 
 
 
+function setLastUpdateTab(tab) {
+    $("[data-last-update-tab]").removeClass("active");
+    $("[data-last-update-tab=\"" + tab + "\"]").addClass("active");
+}
+
+function resetGstinDependentSection() {
+    $("#gstinDependentSection").hide();
+    $("#comparisonReportResult").empty();
+    $("#processDocumentsDhResult").empty();
+    $("#comparisonReportLoader").hide();
+    $("#processDocumentsDhLoader").hide();
+}
+
 function loadReturnLastUpdate() {
-
+    resetGstinDependentSection();
+    setLastUpdateTab("return");
     loadLastUpdate("/api/last-update");
-
 }
 
 function loadCrnLastUpdate() {
-
+    resetGstinDependentSection();
+    setLastUpdateTab("crn");
     loadLastUpdate("/api/last-update-crn");
-
 }
 
 function loadRegistrationLastUpdate() {
-
+    resetGstinDependentSection();
+    setLastUpdateTab("registration");
     loadLastUpdate("/api/last-update-registration");
-
 }
 
 function loadEwayBillLastUpdate() {
-
+    resetGstinDependentSection();
+    setLastUpdateTab("eway");
     loadLastUpdate("/api/last-update-eway-bill");
+}
+
+function loadGstinDependent() {
+    setLastUpdateTab("gstin");
+    $("#gstinDependentSection").show();
+    $("#comparisonReportResult").empty();
+    $("#processDocumentsDhResult").empty();
+}
+
+
+/*
+==================================================
+LEDGER SCHEDULER
+YEAR WISE / MONTH WISE
+==================================================
+*/
+
+$(document).ready(function() {
+
+    initializeLedgerScheduler();
+
+});
+
+
+/*
+==================================================
+INITIALIZE LEDGER SCHEDULER
+==================================================
+*/
+
+function initializeLedgerScheduler() {
+
+    const dataType = $("#ledgerDataType");
+
+    if (!dataType.length) {
+        return;
+    }
+
+    populateLedgerFinancialYears();
+
+    populateLedgerMonthYears();
+
+    updateLedgerMonthAvailability();
 
 }
 
-$(document).on("click", "#ledgerSubmitBtn", function() {
 
-    let action = $("#ledgerAction").val();
-    let fr_dt = $("#ledgerFromDate").val();
-    let to_dt = $("#ledgerToDate").val();
+/*
+==================================================
+POPULATE FINANCIAL YEARS
+==================================================
 
-    if (fr_dt === "") {
-        alert("Select From Date");
+Example:
+
+2026-27
+2025-26
+2024-25
+2023-24
+
+Internally:
+
+2025-26
+=> 2025-04-01 to 2026-03-31
+
+==================================================
+*/
+
+function populateLedgerFinancialYears() {
+
+    const select =
+        $("#ledgerFinancialYear");
+
+    if (!select.length) {
         return;
     }
 
-    if (to_dt === "") {
-        alert("Select To Date");
+    select.empty();
+
+    select.append(
+        '<option value="">Select Financial Year</option>'
+    );
+
+
+    const currentYear =
+        new Date().getFullYear();
+
+
+    /*
+     * Example:
+     *
+     * Current year = 2026
+     *
+     * First FY:
+     * 2026-27
+     *
+     * Then:
+     * 2025-26
+     * 2024-25
+     * ...
+     */
+
+    for (
+        let year = currentYear;
+        year >= 2020;
+        year--
+    ) {
+
+        const nextYear = year + 1;
+
+        const displayValue =
+            year + "-" +
+            String(nextYear).slice(-2);
+
+        const actualValue =
+            year + "-" +
+            nextYear;
+
+
+        select.append(
+            $("<option>", {
+                value: actualValue,
+                text: displayValue
+            })
+        );
+
+    }
+
+}
+
+
+/*
+==================================================
+POPULATE MONTH YEARS
+==================================================
+
+Example:
+
+2026
+2025
+2024
+...
+
+==================================================
+*/
+
+/* =========================================================
+   INITIALIZE MONTH WISE
+   ========================================================= */
+
+function populateLedgerMonthYears() {
+
+    const yearDropdown = $("#ledgerMonthYear");
+
+    if (yearDropdown.length === 0) {
         return;
     }
 
-    $("#ledgerSubmitBtn").hide();
+    yearDropdown.empty();
 
-    $("#ledgerLoader").show();
+    yearDropdown.append(
+        '<option value="">Select Year</option>'
+    );
 
-    $("#ledgerSuccess").hide();
+    const currentYear = new Date().getFullYear();
 
-    $("#ledgerError").hide();
+    /*
+     * Current year + previous 5 years
+     *
+     * Example:
+     * 2026
+     * 2025
+     * 2024
+     * 2023
+     * 2022
+     * 2021
+     */
+    for (
+        let year = currentYear;
+        year >= currentYear - 5;
+        year--
+    ) {
 
-    $.ajax({
+        yearDropdown.append(
+            '<option value="' +
+            year +
+            '">' +
+            year +
+            '</option>'
+        );
+    }
 
-        url: "/common/ledger/schedule-ledger-on-automatic",
 
-        type: "GET",
+    /*
+     * Initially month is enabled.
+     *
+     * We will control individual months
+     * after year selection.
+     */
+    $("#ledgerMonth").prop("disabled", false);
 
-        data: {
+}
 
-            action: action,
-            fr_dt: fr_dt,
-            to_dt: to_dt
 
-        },
+/* =========================================================
+   YEAR CHANGE
+   ========================================================= */
 
-        success: function(response) {
+$(document).on(
+    "change",
+    "#ledgerMonthYear",
+    function() {
 
-            $("#ledgerLoader").hide();
+        const selectedYear =
+            parseInt($(this).val());
 
-            $("#ledgerSuccess")
-                .html(response)
-                .show();
+        const monthDropdown =
+            $("#ledgerMonth");
 
-            $("#ledgerSubmitBtn").show();
 
-        },
+        /*
+         * No year selected
+         */
+        if (!selectedYear) {
 
-        error: function(xhr) {
+            monthDropdown
+                .val("")
+                .prop("disabled", true);
 
-            $("#ledgerLoader").hide();
+            return;
+        }
 
-            $("#ledgerError")
-                .html(xhr.responseText)
-                .show();
 
-            $("#ledgerSubmitBtn").show();
+        /*
+         * Enable month dropdown
+         */
+        monthDropdown.prop("disabled", false);
 
+
+        /*
+         * Update which months are allowed
+         */
+        updateLedgerMonthAvailability();
+
+    }
+);
+
+
+/* =========================================================
+   MONTH AVAILABILITY
+   ========================================================= */
+
+function updateLedgerMonthAvailability() {
+
+    const selectedYear =
+        parseInt($("#ledgerMonthYear").val());
+
+    const monthDropdown =
+        $("#ledgerMonth");
+
+
+    /*
+     * No year selected
+     */
+    if (!selectedYear) {
+
+        monthDropdown
+            .val("")
+            .prop("disabled", true);
+
+        return;
+    }
+
+
+    /*
+     * VERY IMPORTANT:
+     * Enable the month dropdown.
+     */
+    monthDropdown.prop("disabled", false);
+
+
+    const today = new Date();
+
+    const currentYear =
+        today.getFullYear();
+
+    const currentMonth =
+        today.getMonth() + 1;
+
+
+    /*
+     * Check every month
+     */
+    monthDropdown.find("option").each(function() {
+
+        const option = $(this);
+
+        const monthValue =
+            parseInt(option.val());
+
+
+        /*
+         * "Select Month"
+         */
+        if (isNaN(monthValue)) {
+
+            option.prop("disabled", false);
+
+            return;
+        }
+
+
+        /*
+         * FUTURE YEAR
+         *
+         * Example:
+         * Current year = 2026
+         * Selected year = 2027
+         *
+         * All months disabled.
+         */
+        if (selectedYear > currentYear) {
+
+            option.prop("disabled", true);
+
+            return;
+        }
+
+
+        /*
+         * PREVIOUS YEAR
+         *
+         * All months enabled.
+         */
+        if (selectedYear < currentYear) {
+
+            option.prop("disabled", false);
+
+            return;
+        }
+
+
+        /*
+         * CURRENT YEAR
+         *
+         * Only previous months are allowed.
+         *
+         * Current month and future months
+         * are disabled.
+         */
+        if (monthValue >= currentMonth) {
+
+            option.prop("disabled", true);
+
+        } else {
+
+            option.prop("disabled", false);
         }
 
     });
 
-});
+
+    /*
+     * Clear selected month after changing year.
+     */
+    monthDropdown.val("");
+
+}
+
+
+/* =========================================================
+   CALCULATE MONTH DATES
+   ========================================================= */
+
+function calculateLedgerMonthDates() {
+
+    const selectedYear =
+        parseInt($("#ledgerMonthYear").val());
+
+    const selectedMonth =
+        parseInt($("#ledgerMonth").val());
+
+
+    if (!selectedYear || !selectedMonth) {
+
+        return null;
+    }
+
+
+    /*
+     * YYYY-MM
+     */
+    const month =
+        String(selectedMonth).padStart(2, "0");
+
+
+    /*
+     * First day
+     */
+    const fr_dt =
+        selectedYear +
+        "-" +
+        month +
+        "-01";
+
+
+    /*
+     * Last day
+     */
+    const lastDay =
+        new Date(
+            selectedYear,
+            selectedMonth,
+            0
+        ).getDate();
+
+
+    const to_dt =
+        selectedYear +
+        "-" +
+        month +
+        "-" +
+        String(lastDay).padStart(2, "0");
+
+
+    return {
+
+        fr_dt: fr_dt,
+
+        to_dt: to_dt
+
+    };
+
+}
+
+
+/*
+==================================================
+DATA TYPE CHANGE
+==================================================
+*/
+
+$(document).on(
+    "change",
+    "#ledgerDataType",
+    function() {
+
+        const selectedType =
+            $(this).val();
+
+
+        if (selectedType === "YEAR") {
+
+            $("#ledgerYearSection").show();
+
+            $("#ledgerMonthSection").hide();
+
+
+            /*
+             * Clear month selection
+             */
+            $("#ledgerMonth").val("");
+
+            $("#ledgerMonthYear").val("");
+
+        }
+
+
+        else if (selectedType === "MONTH") {
+
+            $("#ledgerYearSection").hide();
+
+            $("#ledgerMonthSection").show();
+
+
+            /*
+             * Clear financial year
+             */
+            $("#ledgerFinancialYear").val("");
+
+
+            updateLedgerMonthAvailability();
+
+        }
+
+
+        $("#ledgerSuccess").hide();
+
+        $("#ledgerError").hide();
+
+    }
+);
+
+
+/*
+==================================================
+MONTH YEAR CHANGE
+==================================================
+*/
+
+$(document).on(
+    "change",
+    "#ledgerMonthYear",
+    function() {
+
+        updateLedgerMonthAvailability();
+
+    }
+);
+
+
+/*
+==================================================
+ENABLE / DISABLE MONTHS
+==================================================
+
+Rule:
+
+Past month       -> ENABLED
+
+Current month    -> DISABLED
+
+Future month     -> DISABLED
+
+Example:
+
+Current date:
+September 2026
+
+Allowed:
+
+January 2026
+February 2026
+March 2026
+April 2026
+May 2026
+June 2026
+July 2026
+August 2026
+
+Not allowed:
+
+September 2026
+October 2026
+November 2026
+December 2026
+
+For 2025:
+
+All months allowed.
+
+==================================================
+*/
+
+function updateLedgerMonthAvailability() {
+
+    const selectedYear =
+        parseInt(
+            $("#ledgerMonthYear").val()
+        );
+
+
+    const today =
+        new Date();
+
+
+    const currentYear =
+        today.getFullYear();
+
+
+    const currentMonth =
+        today.getMonth() + 1;
+
+
+    $("#ledgerMonth option").each(
+        function() {
+
+            const option =
+                $(this);
+
+
+            /*
+             * Placeholder
+             */
+            if (!option.val()) {
+
+                option.prop(
+                    "disabled",
+                    false
+                );
+
+                return;
+            }
+
+
+            const selectedMonth =
+                parseInt(option.val());
+
+
+            /*
+             * No year selected
+             */
+            if (!selectedYear) {
+
+                option.prop(
+                    "disabled",
+                    true
+                );
+
+                return;
+            }
+
+
+            /*
+             * Future year
+             */
+            if (selectedYear > currentYear) {
+
+                option.prop(
+                    "disabled",
+                    true
+                );
+
+            }
+
+
+            /*
+             * Current year
+             *
+             * Current month and future months
+             * are disabled.
+             */
+            else if (
+                selectedYear === currentYear &&
+                selectedMonth >= currentMonth
+            ) {
+
+                option.prop(
+                    "disabled",
+                    true
+                );
+
+            }
+
+
+            /*
+             * Previous year
+             *
+             * All months allowed.
+             */
+            else {
+
+                option.prop(
+                    "disabled",
+                    false
+                );
+
+            }
+
+        }
+    );
+
+
+    /*
+     * If selected month is now disabled,
+     * clear it.
+     */
+
+    const selectedMonth =
+        $("#ledgerMonth option:selected");
+
+
+    if (
+        selectedMonth.length &&
+        selectedMonth.prop("disabled")
+    ) {
+
+        $("#ledgerMonth").val("");
+
+    }
+
+}
+
+
+/*
+==================================================
+CALCULATE FINANCIAL YEAR DATES
+==================================================
+
+Input:
+
+2025-2026
+
+Output:
+
+fromDate = 2025-04-01
+toDate   = 2026-03-31
+
+==================================================
+*/
+
+function calculateLedgerFinancialYearDates() {
+
+    const financialYear =
+        $("#ledgerFinancialYear").val();
+
+
+    if (!financialYear) {
+
+        throw new Error(
+            "Please select Financial Year."
+        );
+
+    }
+
+
+    const parts =
+        financialYear.split("-");
+
+
+    const startYear =
+        parseInt(parts[0]);
+
+
+    const endYear =
+        parseInt(parts[1]);
+
+
+    return {
+
+        fromDate:
+            startYear + "-04-01",
+
+        toDate:
+            endYear + "-03-31"
+
+    };
+
+}
+
+
+/*
+==================================================
+CALCULATE MONTH DATES
+==================================================
+
+Example:
+
+Month = January
+Year  = 2026
+
+Output:
+
+fromDate = 2026-01-01
+toDate   = 2026-01-31
+
+==================================================
+*/
+
+function calculateLedgerMonthDates() {
+
+    const selectedMonth =
+        parseInt(
+            $("#ledgerMonth").val()
+        );
+
+
+    const selectedYear =
+        parseInt(
+            $("#ledgerMonthYear").val()
+        );
+
+
+    if (!selectedYear) {
+
+        throw new Error(
+            "Please select Year."
+        );
+
+    }
+
+
+    if (!selectedMonth) {
+
+        throw new Error(
+            "Please select Month."
+        );
+
+    }
+
+
+    /*
+     * Additional backend safety validation
+     */
+
+    const today =
+        new Date();
+
+
+    const currentYear =
+        today.getFullYear();
+
+
+    const currentMonth =
+        today.getMonth() + 1;
+
+
+    /*
+     * Current month and future months
+     * are not allowed.
+     */
+
+    if (
+        selectedYear > currentYear ||
+        (
+            selectedYear === currentYear &&
+            selectedMonth >= currentMonth
+        )
+    ) {
+
+        throw new Error(
+            "Current month and future months are not allowed."
+        );
+
+    }
+
+
+    /*
+     * JavaScript month is zero based.
+     *
+     * Using:
+     *
+     * new Date(year, month, 0)
+     *
+     * gives last day of selected month.
+     *
+     * Example:
+     *
+     * new Date(2026, 1, 0)
+     *
+     * = 31 January 2026
+     */
+
+    const lastDay =
+        new Date(
+            selectedYear,
+            selectedMonth,
+            0
+        ).getDate();
+
+
+    const monthString =
+        String(selectedMonth)
+            .padStart(2, "0");
+
+
+    const lastDayString =
+        String(lastDay)
+            .padStart(2, "0");
+
+
+    return {
+
+        fromDate:
+            selectedYear +
+            "-" +
+            monthString +
+            "-01",
+
+        toDate:
+            selectedYear +
+            "-" +
+            monthString +
+            "-" +
+            lastDayString
+
+    };
+
+}
+
+
+/*
+==================================================
+LEDGER SUBMIT
+==================================================
+*/
+
+$(document).on(
+    "click",
+    "#ledgerSubmitBtn",
+    function() {
+
+        const button =
+            $("#ledgerSubmitBtn");
+
+
+        const loader =
+            $("#ledgerLoader");
+
+
+        const success =
+            $("#ledgerSuccess");
+
+
+        const error =
+            $("#ledgerError");
+
+
+        /*
+         * Clear previous messages
+         */
+
+        success.hide();
+
+        error.hide();
+
+
+        try {
+
+            /*
+             * ================================================
+             * ACTION
+             * ================================================
+             */
+
+            const action =
+                $("#ledgerAction").val();
+
+
+            /*
+             * ================================================
+             * DATA TYPE
+             * ================================================
+             */
+
+            const dataType =
+                $("#ledgerDataType").val();
+
+
+            if (!dataType) {
+
+                throw new Error(
+                    "Please select Data Type."
+                );
+
+            }
+
+
+            let ledgerDates;
+
+
+            /*
+             * ================================================
+             * YEAR WISE
+             * ================================================
+             */
+
+            if (dataType === "YEAR") {
+
+                ledgerDates =
+                    calculateLedgerFinancialYearDates();
+
+            }
+
+
+            /*
+             * ================================================
+             * MONTH WISE
+             * ================================================
+             */
+
+            else if (dataType === "MONTH") {
+
+                ledgerDates =
+                    calculateLedgerMonthDates();
+
+            }
+
+
+            else {
+
+                throw new Error(
+                    "Invalid Data Type."
+                );
+
+            }
+
+
+            /*
+             * ================================================
+             * INTERNAL VALUES
+             * ================================================
+             *
+             * These dates are NOT displayed to the user.
+             *
+             * Example:
+             *
+             * 2025-26
+             *
+             * becomes:
+             *
+             * fr_dt = 2025-04-01
+             * to_dt = 2026-03-31
+             *
+             * ================================================
+             */
+
+            const fr_dt =
+                ledgerDates.fromDate;
+
+
+            const to_dt =
+                ledgerDates.toDate;
+
+
+            /*
+             * Console logging for development/debugging.
+             *
+             * Remove these logs in production if required.
+             */
+
+            console.log(
+                "Ledger Action:",
+                action
+            );
+
+            console.log(
+                "Ledger Data Type:",
+                dataType
+            );
+
+            console.log(
+                "Ledger From Date:",
+                fr_dt
+            );
+
+            console.log(
+                "Ledger To Date:",
+                to_dt
+            );
+
+
+            /*
+             * ================================================
+             * UI
+             * ================================================
+             */
+
+            button.hide();
+
+            loader.show();
+
+            success.hide();
+
+            error.hide();
+
+
+            /*
+             * ================================================
+             * EXISTING API
+             * ================================================
+             *
+             * DO NOT CHANGE THE BACKEND API.
+             *
+             * Existing endpoint:
+             *
+             * /common/ledger/schedule-ledger-function-depedent
+             *
+             * Existing parameters:
+             *
+             * action
+             * fr_dt
+             * to_dt
+             *
+             * ================================================
+             */
+
+            $.ajax({
+
+                url:
+                    "/common/ledger/schedule-ledger-function-depedent",
+
+                type:
+                    "GET",
+
+                data: {
+
+                    action:
+                        action,
+
+                    fr_dt:
+                        fr_dt,
+
+                    to_dt:
+                        to_dt
+
+                },
+
+
+                /*
+                 * ============================================
+                 * SUCCESS
+                 * ============================================
+                 */
+
+                success:
+                    function(response) {
+
+                        loader.hide();
+
+                        success
+                            .html(
+                                response ||
+                                "Ledger processing completed successfully."
+                            )
+                            .show();
+
+                        button.show();
+
+                    },
+
+
+                /*
+                 * ============================================
+                 * ERROR
+                 * ============================================
+                 */
+
+                error:
+                    function(xhr) {
+
+                        loader.hide();
+
+                        let message =
+                            "Ledger processing failed.";
+
+
+                        if (xhr.responseText) {
+
+                            message =
+                                xhr.responseText;
+
+                        }
+
+
+                        error
+                            .html(message)
+                            .show();
+
+
+                        button.show();
+
+                    }
+
+            });
+
+
+        } catch (e) {
+
+            /*
+             * Validation error
+             */
+
+            loader.hide();
+
+            button.show();
+
+            error
+                .html(e.message)
+                .show();
+
+        }
+
+    }
+);
+
 
 
 function triggerDownload(ty) {
@@ -1109,4 +2236,192 @@ function searchEwayBill() {
 
     });
 
+}
+function runProcessDocumentsDh() {
+
+    if (!confirm("Do you want to run Process Documents DH?")) {
+        return;
+    }
+
+    $("#processDocumentsDhBtn").prop("disabled", true);
+    $("#processDocumentsDhLoader").show();
+    $("#processDocumentsDhResult").html("");
+
+    $.ajax({
+
+        url: "/common/gstr/process-documents-dh",
+
+        type: "GET",
+
+        success: function(response) {
+
+            $("#processDocumentsDhLoader").hide();
+            $("#processDocumentsDhBtn").prop("disabled", false);
+
+            $("#processDocumentsDhResult").html(`
+                <div class="alert alert-success mt-2">
+                    <strong>Success</strong><br>
+                    ${response}
+                </div>
+            `);
+
+        },
+
+        error: function(xhr) {
+
+            $("#processDocumentsDhLoader").hide();
+            $("#processDocumentsDhBtn").prop("disabled", false);
+
+            $("#processDocumentsDhResult").html(`
+                <div class="alert alert-danger mt-2">
+                    <strong>Failed</strong><br>
+                    ${xhr.responseText || "Process Documents DH failed."}
+                </div>
+            `);
+
+        }
+
+    });
+}
+function runComparisonReport() {
+
+    if (!confirm("Do you want to run Get Comparison Report?")) {
+        return;
+    }
+
+    $("#comparisonReportBtn").prop("disabled", true);
+    $("#comparisonReportLoader").show();
+    $("#comparisonReportResult").html("");
+
+    $.ajax({
+
+        url: "/common/gstr/get-comparison-report",
+
+        type: "GET",
+
+        success: function(response) {
+
+            $("#comparisonReportLoader").hide();
+            $("#comparisonReportBtn").prop("disabled", false);
+
+            $("#comparisonReportResult").html(`
+                <div class="alert alert-success mt-2">
+                    <strong>Success</strong><br>
+                    ${response}
+                </div>
+            `);
+
+        },
+
+        error: function(xhr) {
+
+            $("#comparisonReportLoader").hide();
+            $("#comparisonReportBtn").prop("disabled", false);
+
+            $("#comparisonReportResult").html(`
+                <div class="alert alert-danger mt-2">
+                    <strong>Failed</strong><br>
+                    ${xhr.responseText || "Get Comparison Report failed."}
+                </div>
+            `);
+
+        }
+
+    });
+}
+
+//
+function runProcessNormal() {
+
+    if (!confirm("Do you want to run Process Normal Tax Payer?")) {
+        return;
+    }
+
+    $("#processNormalTaxPayerBtn").prop("disabled", true);
+    $("#processNormalTaxPayerLoader").show();
+    $("#processNormalTaxPayerResult").html("");
+
+    $.ajax({
+
+        url: "/common/gstr/get-normal-taxpayer",
+
+        type: "GET",
+
+        success: function(response) {
+
+            $("#processNormalTaxPayerLoader").hide();
+            $("#processNormalTaxPayerBtn").prop("disabled", false);
+
+            $("#processNormalTaxPayerResult").html(`
+                <div class="alert alert-success mt-2">
+                    <strong>Success</strong><br>
+                    ${response}
+                </div>
+            `);
+
+        },
+
+        error: function(xhr) {
+
+            $("#processNormalTaxPayerLoader").hide();
+            $("#processNormalTaxPayerBtn").prop("disabled", false);
+
+            $("#processNormalTaxPayerResult").html(`
+                <div class="alert alert-danger mt-2">
+                    <strong>Failed</strong><br>
+                    ${xhr.responseText || "Process Normal Tax Payer failed."}
+                </div>
+            `);
+
+        }
+
+    });
+}
+
+//
+function runProcessTdsTcs() {
+
+    if (!confirm("Do you want to run Process TdsTcs Tax Payer?")) {
+        return;
+    }
+
+    $("#processTdsTcsTaxPayerBtn").prop("disabled", true);
+    $("#processTdsTcsTaxPayerLoader").show();
+    $("#processTdsTcsTaxPayerResult").html("");
+
+    $.ajax({
+
+        url: "/common/gstr/get-tds-tcs-taxpayer",
+
+        type: "GET",
+
+        success: function(response) {
+
+            $("#processTdsTcsTaxPayerLoader").hide();
+            $("#processTdsTcsTaxPayerBtn").prop("disabled", false);
+
+            $("#processTdsTcsTaxPayerResult").html(`
+                <div class="alert alert-success mt-2">
+                    <strong>Success</strong><br>
+                    ${response}
+                </div>
+            `);
+
+        },
+
+        error: function(xhr) {
+
+            $("#processTdsTcsTaxPayerLoader").hide();
+            $("#processTdsTcsTaxPayerBtn").prop("disabled", false);
+
+            $("#processTdsTcsTaxPayerResult").html(`
+                <div class="alert alert-danger mt-2">
+                    <strong>Failed</strong><br>
+                    ${xhr.responseText || "Process TdsTcs Tax Payer failed."}
+                </div>
+            `);
+
+        }
+
+    });
 }

@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 
@@ -22,20 +22,30 @@ import com.deloitte.common.entity.APIDetails;
 import com.deloitte.common.entity.GSTUserSession;
 import com.deloitte.common.entity.MasterData;
 import com.deloitte.returns.entity.LedgerDataJsonFile;
+import com.deloitte.returns.entity.LedgerRegistrationData;
 import com.deloitte.returns.entity.type.LedgerCash.LedgerCash;
 import com.deloitte.returns.entity.type.LedgerItc.LedgerItc;
 import com.deloitte.returns.entity.type.LedgerLiability.LedgerLiability;
 import com.deloitte.returns.entity.type.LedgerOther.LedgerOther;
 import com.deloitte.returns.repository.common.LedgerDataJsonFileRepository;
+import com.deloitte.returns.repositoryCommon.LedgerRegistrationDataRepository;
 import com.deloitte.service.abs.CommonServiceImplAbs;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
 @Service
 @Log4j2
+@RequiredArgsConstructor
 public class CommonServiceGstrLedgerImpl extends CommonServiceImplAbs {
+
+	private final LedgerDataJsonFileRepository ledgerDataJsonFileRepository;
+
+	private final LedgerRegistrationDataRepository ledgerRegistrationDataRepository;
+
+	private final ObjectMapper objectMapper;
 
 	// Ledger
 
@@ -97,7 +107,9 @@ public class CommonServiceGstrLedgerImpl extends CommonServiceImplAbs {
 				msg = saveLedgerJsonFile(response, action, gstin, fromDate, toDate);
 
 			} else {
-
+				// for the fail
+				saveLedgerJsonFileFailed(response, action, gstin, fromDate, toDate, path);
+				// saveLedgerJsonFileFail(response, action, gstin, fromDate, toDate);
 				log.error("GST server error for gstin {}", gstin);
 				msg = "❌ GST server error for GSTIN: " + gstin;
 			}
@@ -109,6 +121,52 @@ public class CommonServiceGstrLedgerImpl extends CommonServiceImplAbs {
 		}
 
 		return msg;
+	}
+
+	private void saveLedgerJsonFileFail(GSTCommonResponseBean response, String action, String gstin, String fromDate,
+			String toDate) {
+		LedgerRegistrationData ledgerRegistrationData = new LedgerRegistrationData();
+		ledgerRegistrationData.setAction(action);
+		ledgerRegistrationData.setGstin(gstin);
+		ledgerRegistrationData.setFromDate(fromDate);
+		ledgerRegistrationData.setToDate(toDate);
+		ledgerRegistrationData.setFilePath("Failed");
+		ledgerRegistrationData.setInsertDt(new Timestamp(System.currentTimeMillis()));
+		ledgerRegistrationDataRepository.save(ledgerRegistrationData);
+	}
+
+	private void saveLedgerJsonFileFailed(GSTCommonResponseBean response, String action, String gstin, String fromDate,
+			String toDate, String path) {
+
+		log.info("saveLedgerJsonFileFailed called for GSTIN: {}, Action: {}, FromDate: {}, ToDate: {}", gstin, action,
+				fromDate, toDate);
+		LedgerDataJsonFile entity = null;
+		Optional<LedgerDataJsonFile> existingEntity = ledgerDataJsonFileRepository.findByActionAndGstinAndFromDateAndToDate(action, gstin,fromDate, toDate);
+
+		if (existingEntity.isPresent()) {
+			// Record already exists -> same object use karo
+			entity = existingEntity.get();
+		} else {
+			// Record nahi hai -> new object banao
+			entity = new LedgerDataJsonFile();
+
+		}
+
+		entity.setAction(action);
+		entity.setGstin(gstin);
+		entity.setFromDate(fromDate);
+		entity.setToDate(toDate);
+		entity.setFilePath("Failed");
+		entity.setIsSuccess(false);
+		entity.setUrlPath(path);
+		entity.setInsertDt(new Timestamp(System.currentTimeMillis()));
+		entity.setDownloadAttempt(entity.getDownloadAttempt() + 1);
+		
+		
+		
+		
+
+		ledgerDataJsonFileRepository.save(entity);
 	}
 
 	private Map<String, String> getParamsForGetReturnFileLedger(APIDetails apiDetails, MasterData masterData,
@@ -126,37 +184,45 @@ public class CommonServiceGstrLedgerImpl extends CommonServiceImplAbs {
 		return params;
 	}
 
-	@Autowired
-	private LedgerDataJsonFileRepository ledgerDataJsonFileRepository;
-
-	@Autowired
-	private ObjectMapper objectMapper;
-
 	private String saveLedgerJsonFile(GSTCommonResponseBean response, String action, String gstin, String fromDate,
 			String toDate) {
 
-		LedgerDataJsonFile entity = new LedgerDataJsonFile();
+		LedgerDataJsonFile entity;
 
-		try {
+		Optional<LedgerDataJsonFile> existingEntity = ledgerDataJsonFileRepository
+				.findByGstinAndFromDateAndToDateAndAction(gstin, fromDate, toDate, action);
+
+		if (existingEntity.isPresent()) {
+			// Record already exists -> same object use karo
+			entity = existingEntity.get();
+		} else {
+			// Record nahi hai -> new object banao
+			entity = new LedgerDataJsonFile();
 
 			entity.setAction(action);
 			entity.setGstin(gstin);
 			entity.setFromDate(fromDate);
 			entity.setToDate(toDate);
 			entity.setInsertDt(new Timestamp(System.currentTimeMillis()));
+		}
 
-			// ✅ Duplicate check
-			Optional<LedgerDataJsonFile> existing = ledgerDataJsonFileRepository
-					.findByGstinAndFromDateAndToDateAndAction(gstin, fromDate, toDate, action);
+		try {
 
-			if (existing.isPresent()) {
+			// Duplicate success record check
+			if (Boolean.TRUE.equals(entity.getIsSuccess())) {
 				return "⚠ Already exists for GSTIN: " + gstin;
 			}
 
-			// ❌ REK null
+			// REK null
 			if (response.getRek() == null) {
+
 				entity.setDownloadFileStatus(false);
+
+				Integer attempt = entity.getDownloadAttempt();
+				entity.setDownloadAttempt(attempt == null ? 1 : attempt + 1);
+
 				ledgerDataJsonFileRepository.save(entity);
+
 				return "⚠ REK missing for GSTIN: " + gstin;
 			}
 
@@ -185,12 +251,10 @@ public class CommonServiceGstrLedgerImpl extends CommonServiceImplAbs {
 
 		} catch (Exception e) {
 
-			entity.setAction(action);
-			entity.setGstin(gstin);
-			entity.setFromDate(fromDate);
-			entity.setToDate(toDate);
-			entity.setInsertDt(new Timestamp(System.currentTimeMillis()));
 			entity.setDownloadFileStatus(false);
+
+			Integer attempt = entity.getDownloadAttempt();
+			entity.setDownloadAttempt(attempt == null ? 1 : attempt + 1);
 
 			ledgerDataJsonFileRepository.save(entity);
 
@@ -200,99 +264,166 @@ public class CommonServiceGstrLedgerImpl extends CommonServiceImplAbs {
 		}
 	}
 
+//	private String saveLedgerJsonFile(GSTCommonResponseBean response, String action, String gstin, String fromDate,
+//			String toDate) {
+//		
+//		Optional<LedgerDataJsonFile> entity= ledgerDataJsonFileRepository
+//				.findByGstinAndFromDateAndToDateAndAction(gstin, fromDate, toDate, action);
+//
+//		LedgerDataJsonFile entity = new LedgerDataJsonFile();
+//
+//		try {
+//
+//			entity.setAction(action);
+//			entity.setGstin(gstin);
+//			entity.setFromDate(fromDate);
+//			entity.setToDate(toDate);
+//			entity.setInsertDt(new Timestamp(System.currentTimeMillis()));
+//
+//			// ✅ Duplicate check
+//			Optional<LedgerDataJsonFile> existing = ledgerDataJsonFileRepository
+//					.findByGstinAndFromDateAndToDateAndActionAndIsSuccess(gstin, fromDate, toDate, action,true);
+//
+//			if (existing.isPresent()) {
+//				return "⚠ Already exists for GSTIN: " + gstin;
+//			}
+//
+//			// ❌ REK null
+//			if (response.getRek() == null) {
+//				entity.setDownloadFileStatus(false);
+//				entity.setDownloadAttempt(entity.getDownloadAttempt() + 1);
+//				ledgerDataJsonFileRepository.save(entity);
+//				return "⚠ REK missing for GSTIN: " + gstin;
+//			}
+//
+//			String jsonString = new String(Base64.getDecoder().decode(response.getData()), StandardCharsets.UTF_8);
+//
+//			JsonNode jsonNode = objectMapper.readTree(jsonString);
+//
+//			Path folderPath = Paths.get(LedgerFileLocation, action);
+//			Files.createDirectories(folderPath);
+//
+//			String fileName = gstin + "_" + fromDate + "_" + toDate + ".json";
+//			Path filePath = folderPath.resolve(fileName);
+//
+//			if (!Files.exists(filePath)) {
+//				Files.write(filePath, jsonString.getBytes(StandardCharsets.UTF_8));
+//			}
+//
+//			entity.setFilePath(filePath.toString());
+//			entity.setDownloadFileStatus(true);
+//			entity.setJsonData(jsonNode);
+//			entity.setIsSuccess(true);
+//
+//			ledgerDataJsonFileRepository.save(entity);
+//
+//			return "✅ File saved successfully for GSTIN: " + gstin;
+//
+//		} catch (Exception e) {
+//
+//			entity.setAction(action);
+//			entity.setGstin(gstin);
+//			entity.setFromDate(fromDate);
+//			entity.setToDate(toDate);
+//			entity.setInsertDt(new Timestamp(System.currentTimeMillis()));
+//			entity.setDownloadFileStatus(false);
+//			entity.setDownloadAttempt(entity.getDownloadAttempt() + 1);
+//
+//			ledgerDataJsonFileRepository.save(entity);
+//
+//			log.error("Error saving ledger JSON for GSTIN {}", gstin, e);
+//
+//			return "❌ Error saving file for GSTIN: " + gstin;
+//		}
+//	}
+
 	public String processLedgerFromFile(String action) {
 
-	    ObjectMapper objectMapper = new ObjectMapper();
+		ObjectMapper objectMapper = new ObjectMapper();
 
-	    int totalProcessed = 0;
+		int totalProcessed = 0;
 
-	    while (true) {
+		while (true) {
 
-	        // ✅ fetch next 100 unprocessed records
-	        List<LedgerDataJsonFile> list =
-	                ledgerDataJsonFileRepository
-	                        .findTop100ByActionAndIsProcessedFalseOrderByIdAsc(action);
+			// ✅ fetch next 100 unprocessed records
+			List<LedgerDataJsonFile> list = ledgerDataJsonFileRepository
+					.findTop100ByActionAndIsProcessedFalseOrderByIdAsc(action);
 
-	        // 🚨 STOP condition
-	        if (list.isEmpty()) {
-	            break;
-	        }
+			// 🚨 STOP condition
+			if (list.isEmpty()) {
+				break;
+			}
 
-	        for (LedgerDataJsonFile file : list) {
+			for (LedgerDataJsonFile file : list) {
 
-	            try {
+				try {
 
-	                JsonNode jsonNode = file.getJsonData();
+					JsonNode jsonNode = file.getJsonData();
 
-	                if (jsonNode == null || jsonNode.isEmpty()) {
-	                    log.error("❌ Empty JSON for ID: {}", file.getId());
-	                    file.setIsProcessed(false);
-	                    continue;
-	                }
+					if (jsonNode == null || jsonNode.isEmpty()) {
+						log.error("❌ Empty JSON for ID: {}", file.getId());
+						file.setIsProcessed(false);
+						continue;
+					}
 
-	                if (action.equalsIgnoreCase("CASH")) {
+					if (action.equalsIgnoreCase("CASH")) {
 
-	                    LedgerCash ledgerCash =
-	                            objectMapper.treeToValue(jsonNode, LedgerCash.class);
+						LedgerCash ledgerCash = objectMapper.treeToValue(jsonNode, LedgerCash.class);
 
-	                    if (ledgerCash.getGstin() != null && ledgerCash.getGstin().length() > 1) {
-	                        ledgerCashRepository.save(ledgerCash);
-	                    }
+						if (ledgerCash.getGstin() != null && ledgerCash.getGstin().length() > 1) {
+							ledgerCashRepository.save(ledgerCash);
+						}
 
-	                } else if (action.equalsIgnoreCase("TAX")) {
+					} else if (action.equalsIgnoreCase("TAX")) {
 
-	                    LedgerLiability obj =
-	                            objectMapper.treeToValue(jsonNode, LedgerLiability.class);
+						LedgerLiability obj = objectMapper.treeToValue(jsonNode, LedgerLiability.class);
 
-	                    if (obj.getGstin() != null && obj.getGstin().length() > 1) {
-	                        ledgerLiabilityRepository.save(obj);
-	                    }
+						if (obj.getGstin() != null && obj.getGstin().length() > 1) {
+							ledgerLiabilityRepository.save(obj);
+						}
 
-	                } else if (action.equalsIgnoreCase("ITC")) {
+					} else if (action.equalsIgnoreCase("ITC")) {
 
-	                    LedgerItc obj =
-	                            objectMapper.treeToValue(jsonNode, LedgerItc.class);
+						LedgerItc obj = objectMapper.treeToValue(jsonNode, LedgerItc.class);
 
-	                    if (obj.getItcLdgDtls() != null &&
-	                            obj.getItcLdgDtls().getGstin() != null &&
-	                            obj.getItcLdgDtls().getGstin().length() > 1) {
+						if (obj.getItcLdgDtls() != null && obj.getItcLdgDtls().getGstin() != null
+								&& obj.getItcLdgDtls().getGstin().length() > 1) {
 
-	                        ledgerItcRepository.save(obj);
-	                    }
+							ledgerItcRepository.save(obj);
+						}
 
-	                } else if (action.equalsIgnoreCase("NRTN")) {
+					} else if (action.equalsIgnoreCase("NRTN")) {
 
-	                    LedgerOther obj =
-	                            objectMapper.treeToValue(jsonNode, LedgerOther.class);
+						LedgerOther obj = objectMapper.treeToValue(jsonNode, LedgerOther.class);
 
-	                    if (obj.getGstin() != null && obj.getGstin().length() > 1) {
-	                        ledgerOtherRepository.save(obj);
-	                    }
+						if (obj.getGstin() != null && obj.getGstin().length() > 1) {
+							ledgerOtherRepository.save(obj);
+						}
 
-	                } else {
-	                    log.error("❌ Invalid action: {}", action);
-	                    file.setIsProcessed(false);
-	                    continue;
-	                }
+					} else {
+						log.error("❌ Invalid action: {}", action);
+						file.setIsProcessed(false);
+						continue;
+					}
 
-	                // ✅ mark success
-	                file.setIsProcessed(true);
-	                totalProcessed++;
+					// ✅ mark success
+					file.setIsProcessed(true);
+					totalProcessed++;
 
-	            } catch (Exception e) {
+				} catch (Exception e) {
 
-	                log.error("❌ Error processing ID: {}", file.getId(), e);
-	                file.setIsProcessed(false);
-	            }
-	        }
+					log.error("❌ Error processing ID: {}", file.getId(), e);
+					file.setIsProcessed(false);
+				}
+			}
 
-	        // 🔥 batch update DB (IMPORTANT FOR SPEED)
-	        ledgerDataJsonFileRepository.saveAll(list);
+			// 🔥 batch update DB (IMPORTANT FOR SPEED)
+			ledgerDataJsonFileRepository.saveAll(list);
 
-	        log.info("✅ Batch completed. Total processed so far: {}", totalProcessed);
-	    }
+			log.info("✅ Batch completed. Total processed so far: {}", totalProcessed);
+		}
 
-	    return "Processing completed. Total records processed: " + totalProcessed;
+		return "Processing completed. Total records processed: " + totalProcessed;
 	}
 
 	public String processLedgerFromFileOld(String action) {

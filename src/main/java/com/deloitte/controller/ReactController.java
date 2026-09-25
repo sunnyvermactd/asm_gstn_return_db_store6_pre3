@@ -2,7 +2,6 @@ package com.deloitte.controller;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -18,13 +17,15 @@ import org.springframework.web.bind.annotation.RestController;
 import com.deloitte.service.support.crn.ReactEntity;
 import com.deloitte.service.support.crn.ReactService;
 
+import lombok.RequiredArgsConstructor;
+
 @RestController
 @RequestMapping("/api/react")
 @CrossOrigin
+@RequiredArgsConstructor
 public class ReactController {
 
-	@Autowired
-	private ReactService reactService;
+	private final ReactService reactService;
 
 	// GET by ID
 	@GetMapping("/getValuesById")

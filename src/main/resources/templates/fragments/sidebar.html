@@ -1,58 +1,16 @@
 <div th:fragment="sidebar">
-
-	<div class="sidebar">
-
-		<a href="#" onclick="showSection('dashboard')">
-			Dashboard
-		</a>
-
-		<a href="#" onclick="showSection('report')">
-			Report Generation
-		</a>
-
-		<a href="#" onclick="showSection('lastUpdate')">
-			Last Update Status
-		</a>
-
-		<a href="#" onclick="showSection('mismatch')">
-			Mismatch Analysis
-		</a>
-
-		<a href="#" onclick="showSection('statistics')">
-			File Statistics
-		</a>
-
-		<a href="#" onclick="showSection('health')">
-			System Health
-		</a>
-
-
-		<a href="#" onclick="showSection('returnOnFlySection')">
-			Return On The Fly
-		</a>
-
-		<a href="#" onclick="showSection('crnReport')">
-			CRN Report
-		</a>
-
-		<a href="#" onclick="showSection('registrationReport')">
-			Registration Report
-		</a>
-
-		<a href="#" onclick="showSection('ledger')">
-			Ledger
-		</a>
-
-		<a href="#" onclick="showSection('EwayBillNew')">
-			Eway Bill New Search By EWB No.
-		</a>
-
-		<a href="#" onclick="showSection('ewaySearch')">
-			E-Way Bill Search By Date
-		</a>
-
-		</li>
-
-	</div>
-
+    <nav class="sidebar" aria-label="Main navigation">
+        <a href="#" data-section="dashboard" onclick="showSection('dashboard'); return false;">Dashboard</a>
+        <a href="#" data-section="report" onclick="showSection('report'); return false;">Report Generation</a>
+        <a href="#" data-section="lastUpdate" onclick="showSection('lastUpdate'); return false;">Last Update Status</a>
+        <a href="#" data-section="mismatch" onclick="showSection('mismatch'); return false;">Mismatch Analysis</a>
+        <a href="#" data-section="statistics" onclick="showSection('statistics'); return false;">File Statistics</a>
+        <a href="#" data-section="health" onclick="showSection('health'); return false;">System Health</a>
+        <a href="#" data-section="returnOnFlySection" onclick="showSection('returnOnFlySection'); return false;">Return On The Fly</a>
+        <a href="#" data-section="crnReport" onclick="showSection('crnReport'); return false;">CRN Report</a>
+        <a href="#" data-section="registrationReport" onclick="showSection('registrationReport'); return false;">Registration Report</a>
+        <a href="#" data-section="ledger" onclick="showSection('ledger'); return false;">Ledger</a>
+        <a href="#" data-section="EwayBillNew" onclick="showSection('EwayBillNew'); return false;">Eway Bill New Search By EWB No.</a>
+        <a href="#" data-section="ewaySearch" onclick="showSection('ewaySearch'); return false;">E-Way Bill Search By Date</a>
+    </nav>
 </div>

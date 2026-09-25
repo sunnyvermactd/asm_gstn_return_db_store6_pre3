@@ -20,7 +20,6 @@ spring:
                 format_sql: true
                 default_schema: public
         defer-datasource-initialization: true
-
 #spring:
 #  datasource:
 #    url: jdbc:postgresql://localhost:5432/TestingReturnPre?useSSL=false
@@ -33,7 +32,7 @@ spring:
 #
 #  jpa:
 #    hibernate:
-#      ddl-auto: update
+#      ddl-auto: none
 #
 #    show-sql: false
 #

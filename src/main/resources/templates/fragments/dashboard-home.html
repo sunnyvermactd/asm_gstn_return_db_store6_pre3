@@ -1,35 +1,33 @@
 <div th:fragment="dashboardHome">
+    <div class="mb-4">
+        <h4 class="section-title mb-1">Dashboard Overview</h4>
+        <p class="text-muted mb-0">A real-time overview of GSTN returns, matching and update activity.</p>
+    </div>
 
-    <div class="row mt-3">
-
+    <div class="row g-3">
         <div class="col-md-3">
             <div class="card stat-card">
                 <h6>Total Returns</h6>
                 <h2 id="totalReturns">0</h2>
             </div>
         </div>
-
         <div class="col-md-3">
             <div class="card stat-card">
                 <h6>Matched</h6>
                 <h2 id="matchedCount">0</h2>
             </div>
         </div>
-
         <div class="col-md-3">
             <div class="card stat-card">
                 <h6>Mismatch</h6>
                 <h2 id="mismatchCount">0</h2>
             </div>
         </div>
-
         <div class="col-md-3">
             <div class="card stat-card">
                 <h6>Last Updated</h6>
                 <h2 id="lastUpdatedDate">-</h2>
             </div>
         </div>
-
     </div>
-
 </div>

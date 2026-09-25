@@ -1,76 +1,196 @@
+```html
 <div th:fragment="ledgerSection">
 
-    <div class="card shadow">
+	<div class="card shadow">
 
-        <div class="card-header bg-primary text-white">
-            <h5 class="mb-0">Ledger Scheduler</h5>
-        </div>
+		<div class="card-header bg-primary text-white">
+			<h5 class="mb-0">Ledger Scheduler</h5>
+		</div>
 
-        <div class="card-body">
+		<div class="card-body">
 
-            <div class="row">
+			<!-- ========================================= -->
+			<!-- ACTION + DATA TYPE -->
+			<!-- ========================================= -->
 
-                <div class="col-md-3">
-                    <label>Action</label>
+			<div class="row mb-3">
 
-                    <select id="ledgerAction" class="form-select">
-                        <option value="ITC">ITC</option>
-                        <option value="TAX">TAX</option>
-                        <option value="CASH">CASH</option>
-                        <option value="NRTN">NRTN</option>
-                    </select>
-                </div>
+				<div class="col-md-3">
 
-                <div class="col-md-3">
-                    <label>From Date</label>
-                    <input type="date"
-                           id="ledgerFromDate"
-                           class="form-control">
-                </div>
+					<label for="ledgerAction" class="form-label">
+						Action
+					</label>
 
-                <div class="col-md-3">
-                    <label>To Date</label>
-                    <input type="date"
-                           id="ledgerToDate"
-                           class="form-control">
-                </div>
+					<select id="ledgerAction" class="form-select">
 
-                <div class="col-md-3 d-flex align-items-end">
+						<option value="ITC">ITC</option>
+						<option value="TAX">TAX</option>
+						<option value="CASH">CASH</option>
+						<option value="NRTN">NRTN</option>
 
-                    <button
-                        id="ledgerSubmitBtn"
-                        class="btn btn-success w-100">
+					</select>
 
-                        Submit
+				</div>
 
-                    </button>
 
-                </div>
+				<div class="col-md-3">
 
-            </div>
+					<label for="ledgerDataType" class="form-label">
 
-            <hr>
+						Data Type
 
-            <div id="ledgerLoader"
-                 class="alert alert-warning"
-                 style="display:none">
+					</label>
 
-                Processing... Please Wait...
+					<select id="ledgerDataType" class="form-select">
 
-            </div>
+						<option value="YEAR">
+							Year Wise
+						</option>
 
-            <div id="ledgerSuccess"
-                 class="alert alert-success"
-                 style="display:none">
-            </div>
+						<option value="MONTH">
+							Month Wise
+						</option>
 
-            <div id="ledgerError"
-                 class="alert alert-danger"
-                 style="display:none">
-            </div>
+					</select>
 
-        </div>
+				</div>
 
-    </div>
+			</div>
+
+
+			<!-- ========================================= -->
+			<!-- YEAR WISE -->
+			<!-- ========================================= -->
+
+			<div id="ledgerYearSection">
+
+				<div class="row">
+
+					<div class="col-md-3">
+
+						<label for="ledgerFinancialYear" class="form-label">
+
+							Financial Year
+
+						</label>
+
+						<select id="ledgerFinancialYear" class="form-select">
+
+							<option value="">
+								Select Financial Year
+							</option>
+
+						</select>
+
+					</div>
+
+				</div>
+
+			</div>
+
+
+			<!-- Month Wise Section -->
+			<div id="ledgerMonthSection" style="display:none;">
+
+				<div class="row">
+
+					<!-- Year FIRST -->
+					<div class="col-md-3">
+						<label for="ledgerMonthYear" class="form-label">
+							Year
+						</label>
+
+						<select id="ledgerMonthYear" class="form-select">
+							<option value="">Select Year</option>
+						</select>
+					</div>
+
+					<!-- Month SECOND -->
+					<div class="col-md-3">
+						<label for="ledgerMonth" class="form-label">
+							Month
+						</label>
+
+						<select id="ledgerMonth" class="form-select" disabled>
+							<option value="">Select Month</option>
+
+							<option value="1">January</option>
+							<option value="2">February</option>
+							<option value="3">March</option>
+							<option value="4">April</option>
+							<option value="5">May</option>
+							<option value="6">June</option>
+							<option value="7">July</option>
+							<option value="8">August</option>
+							<option value="9">September</option>
+							<option value="10">October</option>
+							<option value="11">November</option>
+							<option value="12">December</option>
+
+						</select>
+					</div>
+
+				</div>
+
+			</div>
+
+
+			<hr>
+
+
+			<!-- ========================================= -->
+			<!-- SUBMIT -->
+			<!-- ========================================= -->
+
+			<div class="row">
+
+				<div class="col-md-3">
+
+					<button id="ledgerSubmitBtn" type="button" class="btn btn-success w-100">
+
+						Submit
+
+					</button>
+
+				</div>
+
+			</div>
+
+
+			<br>
+
+
+			<!-- ========================================= -->
+			<!-- LOADER -->
+			<!-- ========================================= -->
+
+			<div id="ledgerLoader" class="alert alert-warning" style="display:none;">
+
+				Processing... Please Wait...
+
+			</div>
+
+
+			<!-- ========================================= -->
+			<!-- SUCCESS -->
+			<!-- ========================================= -->
+
+			<div id="ledgerSuccess" class="alert alert-success" style="display:none;">
+
+			</div>
+
+
+			<!-- ========================================= -->
+			<!-- ERROR -->
+			<!-- ========================================= -->
+
+			<div id="ledgerError" class="alert alert-danger" style="display:none;">
+
+			</div>
+
+		</div>
+
+	</div>
 
 </div>
+```

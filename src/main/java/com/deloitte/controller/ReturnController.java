@@ -3,7 +3,6 @@ package com.deloitte.controller;
 import java.util.List;
 import java.util.function.Supplier;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -25,30 +24,26 @@ import com.deloitte.service.impl.RegistrationServiceImpl;
 import com.deloitte.service.support.CommonServiceGstrUtilityImpl;
 import com.deloitte.service.support.GstinServiceRegistration;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
 @RestController
 @RequestMapping("/common/gstr")
 @Log4j2
+@RequiredArgsConstructor
 public class ReturnController {
 
-	@Autowired
-	private CommonServiceGstrUtilityImpl commonControllerGstrUtilityImpl;
+	private final CommonServiceGstrUtilityImpl commonControllerGstrUtilityImpl;
 
-	@Autowired
-	private GstinServiceRegistration gstinServiceRegistration;
+	private final GstinServiceRegistration gstinServiceRegistration;
 
-	@Autowired
-	protected GstUserSessionServices gstUserSessionServices;
+	private final GstUserSessionServices gstUserSessionServices;
 
-	@Autowired
-	protected RegistrationServiceImpl registrationServiceImpl;
+	private final RegistrationServiceImpl registrationServiceImpl;
 
-	@Autowired
-	EwayBillApiService eWayBillApiService;
+	private final EwayBillApiService eWayBillApiService;
 
-	@Autowired
-	EwayBillReportServiceImpl ewayBillReportServiceImpl;
+	private final EwayBillReportServiceImpl ewayBillReportServiceImpl;
 
 	private static final String USERNAME = "GSTG2G18";
 

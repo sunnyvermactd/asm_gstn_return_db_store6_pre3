@@ -1,49 +1,107 @@
 <div th:fragment="lastUpdate">
-
-	<h4 class="mt-3">
-		Last Update Status
-	</h4>
-
-	<div class="mb-3">
-
-		<button class="btn btn-primary" onclick="loadReturnLastUpdate()">
-			Return
-		</button>
-
-		<button class="btn btn-success" onclick="loadCrnLastUpdate()">
-			CRN
-		</button>
-
-		<button class="btn btn-warning" onclick="loadRegistrationLastUpdate()">
-			Registration
-		</button>
-
-		<button class="btn btn-info" onclick="loadEwayBillLastUpdate()">
-			E-Way Bill
-		</button>
-
-		<button class="btn btn-info" onclick="loadEwayBillLastUpdate()">
-			GSTIN DEPENDENT
-		</button>
-
+	<div class="d-flex align-items-start justify-content-between flex-wrap gap-2 mb-3">
+		<div>
+			<h4 class="section-title mb-1">Last Update Status</h4>
+			<p class="text-muted mb-0">Monitor the latest data update status across GSTN services.</p>
+		</div>
 	</div>
 
-	<div class="row" id="updateCards">
-
+	<div class="last-update-toolbar" role="tablist" aria-label="Last update categories">
+		<button class="btn btn-primary active" data-last-update-tab="return"
+			onclick="loadReturnLastUpdate()">Return</button>
+		<button class="btn btn-success" data-last-update-tab="crn" onclick="loadCrnLastUpdate()">CRN</button>
+		<button class="btn btn-warning" data-last-update-tab="registration"
+			onclick="loadRegistrationLastUpdate()">Registration</button>
+		<button class="btn btn-info" data-last-update-tab="eway" onclick="loadEwayBillLastUpdate()">E-Way Bill</button>
+		<button class="btn btn-info" data-last-update-tab="gstin" onclick="loadGstinDependent()">GSTIN
+			DEPENDENT</button>
 	</div>
-	<table id="lastUpdateTable" class="table table-bordered">
 
-		<thead>
+	<div class="row g-3" id="updateCards"></div>
 
-			<tr>
-				<th>TY</th>
-				<th>Last Updated Date</th>
-			</tr>
+	<div id="gstinDependentSection" class="gstin-dependent-section" style="display:none;">
+		<div class="mb-3">
+			<div class="fw-bold">GSTIN Dependent Operations</div>
+			<small class="text-muted">Run GSTIN-dependent processing tasks from this section.</small>
+		</div>
 
-		</thead>
+		<div class="row g-3">
+			<div class="col-md-6">
+				<div class="card action-card">
+					<div class="card-body text-center">
+						<h5 class="card-title">GET COMPARISON REPORT</h5>
+						<hr>
+						<button id="comparisonReportBtn" class="btn btn-primary" onclick="runComparisonReport()">Run
+							Now</button>
+						<div id="comparisonReportLoader" class="mt-3" style="display:none;">
+							<div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+							<div class="mt-2">Processing...</div>
+						</div>
+						<div id="comparisonReportResult" class="mt-3"></div>
+					</div>
+				</div>
+			</div>
 
-		<tbody></tbody>
+			<div class="col-md-6">
+				<div class="card action-card">
+					<div class="card-body text-center">
+						<h5 class="card-title">PROCESS DOCUMENTS DH</h5>
+						<hr>
+						<button id="processDocumentsDhBtn" class="btn btn-primary" onclick="runProcessDocumentsDh()">Run
+							Now</button>
+						<div id="processDocumentsDhLoader" class="mt-3" style="display:none;">
+							<div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+							<div class="mt-2">Processing...</div>
+						</div>
+						<div id="processDocumentsDhResult" class="mt-3"></div>
+					</div>
+				</div>
+			</div>
+			<div class="col-md-6">
+				<div class="card action-card">
+					<div class="card-body text-center">
+						<h5 class="card-title">PROCESS NORMAL TAX PAYER</h5>
+						<hr>
+						<button id="processDocumentsDhBtn" class="btn btn-primary" onclick="runProcessNormal()">Run
+							Now</button>
+						<div id="processDocumentsDhLoader" class="mt-3" style="display:none;">
+							<div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+							<div class="mt-2">Processing...</div>
+						</div>
+						<div id="processDocumentsDhResult" class="mt-3"></div>
+					</div>
+				</div>
+			</div>
+			<div class="col-md-6">
+				<div class="card action-card">
+					<div class="card-body text-center">
+						<h5 class="card-title">PROCESS TDS/TCS TAXPAYER</h5>
+						<hr>
+						<button id="processDocumentsDhBtn" class="btn btn-primary" onclick="runProcessTdsTcs()">Run
+							Now</button>
+						<div id="processDocumentsDhLoader" class="mt-3" style="display:none;">
+							<div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+							<div class="mt-2">Processing...</div>
+						</div>
+						<div id="processDocumentsDhResult" class="mt-3"></div>
+					</div>
+				</div>
+			</div>
 
-	</table>
+		</div>
+	</div>
 
+	<div class="card mt-3">
+		<div class="table-responsive">
+			<table id="lastUpdateTable" class="table table-bordered align-middle">
+				<thead>
+					<tr>
+						<th>TY</th>
+						<th>Last Updated Date</th>
+					</tr>
+				</thead>
+				<tbody></tbody>
+			</table>
+		</div>
+	</div>
 </div>

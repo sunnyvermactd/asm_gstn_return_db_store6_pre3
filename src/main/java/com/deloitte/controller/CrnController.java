@@ -2,7 +2,6 @@ package com.deloitte.controller;
 
 import java.io.UnsupportedEncodingException;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -15,34 +14,30 @@ import com.deloitte.service.impl.CrnDetailMigrationService;
 import com.deloitte.service.support.crn.CommonCrnServicePreImpl;
 import com.deloitte.service.utility.procedure.CrnProcedureService;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
 @Log4j2
 @RestController
 @RequestMapping("/api/crn")
+@RequiredArgsConstructor
 public class CrnController {
 
-	@Autowired
-	private CommonCrnServiceImpl commonCrnServiceImpl;
+	private final CommonCrnServiceImpl commonCrnServiceImpl;
 
-	@Autowired
-	private CommonCrnServicePreImpl commonCrnServicePreImpl;
+	private final CommonCrnServicePreImpl commonCrnServicePreImpl;
 
-	@Autowired
-	private CrnProcedureService crnProcedureService;
+	private final CrnProcedureService crnProcedureService;
 
-	@Autowired
-	protected GstUserSessionServices gstUserSessionServices;
+	private final GstUserSessionServices gstUserSessionServices;
 
-	@Autowired
-	private CrnDetailMigrationService crnDetailMigrationService;
-	
+	private final CrnDetailMigrationService crnDetailMigrationService;
+
 	@GetMapping("/process-crn-detail-migration")
 	public void processCrnDetailMigrationService() {
 		crnDetailMigrationService.migrateFyData();
 	}
-	
-	
+
 	private static final String USERNAME = "GSTG2G18";
 
 	@GetMapping("/process-crn-scheduler")
@@ -67,7 +62,12 @@ public class CrnController {
 			log.info("Starting Pending CRN Processing...");
 			String response2 = commonCrnServicePreImpl.processPendingCrns();
 			log.info("Pending CRN Processing Completed: {}", response2);
-
+			
+			crnDetailMigrationService.migrateFyData();
+			log.info("migrateFyData Completed1: {}");
+			
+			crnDetailMigrationService.migrateFyData();
+			log.info("migrateFyData Completed2: {}");
 		} catch (Exception e) {
 			log.error("CRN Scheduler Failed", e);
 		}

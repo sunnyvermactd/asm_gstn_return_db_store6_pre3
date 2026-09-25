@@ -2,8 +2,6 @@ package com.deloitte.controller;
 
 import java.io.UnsupportedEncodingException;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -14,18 +12,18 @@ import com.deloitte.service.impl.EwayBillApiService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
 @RestController
 @RequestMapping("/EwayBill")
 @Log4j2
+@RequiredArgsConstructor
 public class EwayBillController {
 
-	@Autowired
-	private EWayBillAuthService eWayBillAuthService;
+	private final EWayBillAuthService eWayBillAuthService;
 
-	@Autowired
-	private EwayBillApiService eWayBillApiService;
+	private final EwayBillApiService eWayBillApiService;
 
 	@GetMapping("/authenticate")
 	public EWayBillAuthBean authenticate()
@@ -35,14 +33,12 @@ public class EwayBillController {
 
 	}
 
-	
 	@GetMapping("/schedule-PARTA")
 	public String schedulePartADownload() {
 		String category = "PARTA";
 		return eWayBillApiService.scheduleEwayBillDownload(category);
 
 	}
-	
 
 	@GetMapping("/schedule-PARTB")
 	public String schedulePartBDownload() {

@@ -1,6 +1,5 @@
 package com.deloitte.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -11,12 +10,14 @@ import org.springframework.web.bind.annotation.RestController;
 import com.deloitte.common.entity.MasterData;
 import com.deloitte.service.impl.MasterDataServiceImpl;
 
+import lombok.RequiredArgsConstructor;
+
 @RestController
 @RequestMapping("/masterData")
+@RequiredArgsConstructor
 public class MasterDataController {
 
-	@Autowired
-	private MasterDataServiceImpl masterDataServiceImpl;
+	private final MasterDataServiceImpl masterDataServiceImpl;
 
 	@PostMapping("/create")
 	public ResponseEntity<MasterData> create(@RequestBody MasterData masterData) {

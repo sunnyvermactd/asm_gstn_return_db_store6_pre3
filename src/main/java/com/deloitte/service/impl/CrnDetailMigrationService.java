@@ -32,7 +32,7 @@ public class CrnDetailMigrationService {
 
 	@Transactional
 	public void migrateFyData() {
-
+		log.info("Starting migration of fy data for CrnDetailCommonNik");
 		Instant start = Instant.now();
 
 		long totalProcessed = 0;

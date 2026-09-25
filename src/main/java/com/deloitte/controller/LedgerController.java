@@ -23,6 +23,8 @@ public class LedgerController {
 	final CommonControllerGstrUtilityImpl commonControllerGstrUtilityImpl;
 
 	final CommonControllerGstrUtilityImplOptimized commonControllerGstrUtilityImplOptimized;
+	
+	private static final String USERNAME = "GSTG2G18";
 
 	@GetMapping("/schedule-ledger-on-automatic")
 	public ResponseEntity<String> scheduleLedgerOnAutomatic(@RequestParam String action, @RequestParam String fr_dt,
@@ -88,6 +90,22 @@ public class LedgerController {
 
 			return ResponseEntity.internalServerError().body("FAILED : " + e.getMessage());
 		}
+	}
+	
+	@GetMapping("/get-failed-ledger-execute") // Get Comparison Report
+	public ResponseEntity<String> getFailedLedgerExecute() {
+
+		String response = commonControllerGstrUtilityImplOptimized.getFailedLedgerExecute(USERNAME);
+
+		return ResponseEntity.ok(response);
+	}
+	
+	@GetMapping("/get-failed-ledger") // Get Comparison Report
+	public ResponseEntity<String> getFailedLedger(@RequestParam String action) {
+
+		String response = commonControllerGstrUtilityImplOptimized.getFailedLedgerExecute(USERNAME,action);
+
+		return ResponseEntity.ok(response);
 	}
 
 	// http://localhost:8019/common/gstr/scheduleLedgerCashForSingleGSTN?action=CASH&fr_dt=01-04-2023&to_dt=31-03-2024

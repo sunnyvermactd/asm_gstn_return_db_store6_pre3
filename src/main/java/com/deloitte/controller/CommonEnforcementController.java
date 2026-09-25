@@ -3,7 +3,6 @@ package com.deloitte.controller;
 import java.io.IOException;
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,12 +12,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.deloitte.service.impl.CommonEnforecementService;
 
+import lombok.RequiredArgsConstructor;
+
 @RestController
 @RequestMapping("/enforcement")
+@RequiredArgsConstructor
 public class CommonEnforcementController {
 
-	@Autowired
-	private CommonEnforecementService commonEnforecementService;
+	private final CommonEnforecementService commonEnforecementService;
 
 	@GetMapping("/downloadLatest")
 	public ResponseEntity<String> getCommonGstrAndOtherDownloadLatest(@RequestParam String username, // GSTG2G22

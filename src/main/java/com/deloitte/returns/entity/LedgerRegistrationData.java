@@ -21,16 +21,15 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "ledger_data_json_file", schema = "common")
-public class LedgerDataJsonFile {
+@Table(name = "ledger_registration_data", schema = "common")
+public class LedgerRegistrationData {
+
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
 	private String filePath;
-	
-	private String urlPath;
 
 	@JdbcTypeCode(SqlTypes.JSON)
 	@Column(name = "json_data")
@@ -56,5 +55,6 @@ public class LedgerDataJsonFile {
 
 	@Column(name = "download_attempt", nullable = false)
 	private Integer downloadAttempt = 0;
-}
 
+
+}

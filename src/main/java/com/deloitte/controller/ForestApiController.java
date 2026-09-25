@@ -2,10 +2,8 @@ package com.deloitte.controller;
 
 import java.time.LocalDate;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -15,18 +13,18 @@ import org.springframework.web.bind.annotation.RestController;
 import com.deloitte.service.forest.ForestApiService;
 import com.deloitte.service.forest.ForestExtractionService;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequestMapping("/forest")
 @Slf4j
+@RequiredArgsConstructor
 public class ForestApiController {
 
-	@Autowired
-	private ForestApiService service;
+	private final ForestApiService service;
 
-	@Autowired
-	private ForestExtractionService forestExtractionService;
+	private final ForestExtractionService forestExtractionService;
 
 	@GetMapping("/download")
 	public ResponseEntity<String> download() {
@@ -48,7 +46,7 @@ public class ForestApiController {
 		}
 	}
 
-	//@Scheduled(cron = "0 20 10 * * *")
+	// @Scheduled(cron = "0 20 10 * * *")
 	@GetMapping("/download-save-daily-data")
 	public ResponseEntity<String> downloadAndSaveDailyData() {
 
